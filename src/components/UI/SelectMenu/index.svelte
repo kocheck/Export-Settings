@@ -1,10 +1,12 @@
 <script>
     import { onMount } from 'svelte';
     import { createEventDispatcher } from 'svelte';
-    import ClickOutside from 'svelte-click-outside';
     import SelectItem from './../SelectItem/index.svelte';
     import SelectDivider from './../SelectDivider/index.svelte';
     import Icon from './../Icon/index.svelte';
+
+    let selectMenu;
+    let isOpen = false;
 
     export let iconName = null;
     export let iconText = null;
@@ -115,7 +117,7 @@
 
         } else if (menuList.contains(event.target)) {
             //find selected item in array
-            let itemId = parseInt(event.target.getAttribute('itemId')); 
+            let itemId = parseInt(event.target.getAttribute('itemId'));
 
             //remove current selection if there is one
             if (value) {
@@ -128,7 +130,7 @@
             if (macOSBlink) {
                 var x = 4;
                 var interval = 70;
-                
+
                 //blink the background
                 for (var i = 0; i < x; i++) {
                     setTimeout(function () {
@@ -175,13 +177,13 @@
             let minTop = -Math.abs(parentBounding.top - (window.innerHeight - menuHeight - 8));
             let newTop = -Math.abs(bounding.bottom - window.innerHeight + 16);
             if (menuResized) {
-                menuList.style.top = -Math.abs(parentBounding.top - 8) + 'px'; 
+                menuList.style.top = -Math.abs(parentBounding.top - 8) + 'px';
             } else if (newTop > minTop) {
                 menuList.style.top = minTop + 'px';
             } else {
                  menuList.style.top = newTop + 'px';
             }
-            
+
         }
 
     }
@@ -190,60 +192,82 @@
         menuList.style.top = '0px';
     }
 
+    // Add this click outside action
+    function clickOutside(node) {
+        const handleClick = (event) => {
+            if (!node.contains(event.target)) {
+                node.dispatchEvent(new CustomEvent('outclick'));
+            }
+        };
+
+        document.addEventListener('click', handleClick, true);
+
+        return {
+            destroy() {
+                document.removeEventListener('click', handleClick, true);
+            }
+        };
+    }
+
+    function toggleMenu() {
+        isOpen = !isOpen;
+        if (!isOpen) {
+            menuList.classList.add('hidden');
+            menuButton.classList.remove('selected');
+        }
+    }
+
 </script>
 
-<ClickOutside on:clickoutside={menuClick}>
-    <div 
-        on:change
-        bind:this={menuWrapper}
-        {disabled}
-        {placeholder}
-        {showGroupLabels}
-        {macOSBlink}
-        class="wrapper {className}"
-        >
+<div
+    use:clickOutside
+    on:outclick={() => {
+        // Your click outside handling code here
+        if (isOpen) toggleMenu();
+    }}
+    class="select-menu {className}"
+    bind:this={selectMenu}>
 
-        <button bind:this={menuButton} on:click={menuClick} disabled={disabled}>
-            {#if iconName}
-                <span class="icon"><Icon iconName={iconName} color="black3"/></span>
-            {:else if iconText}
-                <span class="icon"><Icon iconText={iconText} color="black3"/></span>
-            {/if}
-
-            {#if value}
-                <span class="label">{value.label}</span>
-            {:else}
-                <span class="placeholder">{placeholder}</span>
-            {/if}
-
-            {#if !disabled}
-                <span class="caret">
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M3.64645 5.35359L0.646454 2.35359L1.35356 1.64648L4.00001 4.29293L6.64645 1.64648L7.35356 2.35359L4.35356 5.35359L4.00001 5.70714L3.64645 5.35359Z" fill="black"/> </svg>
-                </span>
-            {/if}
-        </button>
-
-        <ul class="menu hidden" bind:this={menuList}>
-        {#if menuItems.length > 0}
-            {#each menuItems as item, i}
-                {#if i === 0}
-                    {#if item.group && showGroupLabels}
-                        <SelectDivider label>{item.group}</SelectDivider>
-                    {/if}
-                {:else if i > 0 && item.group && menuItems[i - 1].group != item.group}
-                    {#if showGroupLabels}
-                        <SelectDivider />
-                        <SelectDivider label>{item.group}</SelectDivider>
-                    {:else}
-                        <SelectDivider />
-                    {/if}
-                {/if}
-                <SelectItem on:click={menuClick} on:mouseenter={removeHighlight} itemId={item.id} bind:selected={item.selected}>{item.label}</SelectItem>
-            {/each}
+    <button bind:this={menuButton} on:click={menuClick} disabled={disabled}>
+        {#if iconName}
+            <span class="icon"><Icon iconName={iconName} color="black3"/></span>
+        {:else if iconText}
+            <span class="icon"><Icon iconText={iconText} color="black3"/></span>
         {/if}
-        </ul>
-    </div>
-</ClickOutside>
+
+        {#if value}
+            <span class="label">{value.label}</span>
+        {:else}
+            <span class="placeholder">{placeholder}</span>
+        {/if}
+
+        {#if !disabled}
+            <span class="caret">
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M3.64645 5.35359L0.646454 2.35359L1.35356 1.64648L4.00001 4.29293L6.64645 1.64648L7.35356 2.35359L4.35356 5.35359L4.00001 5.70714L3.64645 5.35359Z" fill="black"/> </svg>
+            </span>
+        {/if}
+    </button>
+
+    <ul class="menu hidden" bind:this={menuList}>
+    {#if menuItems.length > 0}
+        {#each menuItems as item, i}
+            {#if i === 0}
+                {#if item.group && showGroupLabels}
+                    <SelectDivider label>{item.group}</SelectDivider>
+                {/if}
+            {:else if i > 0 && item.group && menuItems[i - 1].group != item.group}
+                {#if showGroupLabels}
+                    <SelectDivider />
+                    <SelectDivider label>{item.group}</SelectDivider>
+                {:else}
+                    <SelectDivider />
+                {/if}
+            {/if}
+            <SelectItem on:click={menuClick} on:mouseenter={removeHighlight} itemId={item.id} bind:selected={item.selected}>{item.label}</SelectItem>
+        {/each}
+    {/if}
+    </ul>
+</div>
 
 
 <style>
@@ -259,7 +283,7 @@
         height: 30px;
         width: 100%;
         margin: 1px 0 1px 0;
-        padding: 0px var(--size-xxsmall) 0px var(--size-xxsmall);   
+        padding: 0px var(--size-xxsmall) 0px var(--size-xxsmall);
         overflow-y: hidden;
         border-radius: var(--border-radius-small);
     }
@@ -364,6 +388,6 @@
         -webkit-box-shadow:inset 0 0 10px 10px rgba(255,255,255,.4);
         box-shadow:inset 0 0 10px 10px rgba(255,255,255,.4);
     }
-        
+
 
 </style>
