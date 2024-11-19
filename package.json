@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "watch": "vite build --watch"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.82.0",
