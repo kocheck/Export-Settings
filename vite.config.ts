@@ -7,7 +7,6 @@ export default defineConfig({
     svelte({
       compilerOptions: {
         dev: false,
-        css: 'injected',
       },
     }),
     viteSingleFile(),
@@ -15,6 +14,8 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: 'terser',
+    assetsInlineLimit: 100000000,
+    chunkSizeWarningLimit: 100000000,
     cssCodeSplit: false,
     outDir: 'dist',
     rollupOptions: {
@@ -23,8 +24,9 @@ export default defineConfig({
         code: 'src/code.ts',
       },
       output: {
-        entryFileNames: '[name].js',
         format: 'iife',
+        entryFileNames: '[name].js',
+        inlineDynamicImports: true,
       },
     },
   },

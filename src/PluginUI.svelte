@@ -36,19 +36,13 @@
   // $: disabled = isAdvancedExportChecked === null;
 
   function applySettings() {
-    console.log(`1 Fire Apply Settings`);
-    console.log(isAdvancedExportChecked);
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: "applySettings",
-          platform: selectedPlatform.value,
-          name: UserEnteredString,
-          isAdvanced: isAdvancedExportChecked
-        }
-      },
-      "*"
-    );
+    const message = {
+      type: 'applySettings',
+      platform: selectedPlatform,
+      name: UserEnteredString,
+      isAdvanced: isAdvancedExportChecked
+    };
+    parent.postMessage({ pluginMessage: message }, '*');
   }
 
   function cancel() {
@@ -56,15 +50,10 @@
   }
 
   function clearSettings() {
-    console.log(`1 Fire Clear Settings`);
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: "clearSettings"
-        }
-      },
-      "*"
-    );
+    const message = {
+      type: 'clearSettings'
+    };
+    parent.postMessage({ pluginMessage: message }, '*');
   }
 </script>
 
