@@ -1,0 +1,20 @@
+{
+  "name": "Lazy Export",
+  "id": "824059814042167296",
+  "api": "2.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "permissions": [],
+  "menu": [
+    { "name": "Quick Export - iOS", "command": "quick-export-ios" },
+    { "name": "Quick Export - Android", "command": "quick-export-android" },
+    { "name": "Quick Export - Web", "command": "quick-export-web" },
+    { "separator": true },
+    { "name": "Open Export Settings", "command": "open-ui" },
+    { "name": "Clear Export Settings", "command": "clear-settings" }
+  ]
+}

@@ -1,0 +1,8 @@
+/* Base Figma DS styles */
+:root {
+  --figma-color-bg: #ffffff;
+  --figma-color-text: #333333;
+  /* Add other Figma DS variables */
+}
+
+/* Import this in your main.ts */

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Input, Icon, Button } from 'figma-plugin-ds-svelte';
   import { onMount } from 'svelte';
   import { fade, slide } from 'svelte/transition';
   import { toasts, showToast } from './stores/toast.ts';
@@ -15,6 +16,9 @@
   import LanguageSelector from './components/LanguageSelector.svelte';
   import './styles/rtl.css';
 
+  // Add type declaration for figma
+  declare const figma: any;
+
   let isLoading = false;
   let error: string | null = null;
   let selectedPlatform: PlatformType | null = null;
@@ -23,6 +27,13 @@
   let showSettings = false;
 
   $: documentDir = $isRTL ? 'rtl' : 'ltr';
+
+  let menuItems = [
+    { value: 'ios', text: 'iOS' },
+    { value: 'android', text: 'Android' },
+    { value: 'web', text: 'Web' }
+  ];
+  let showCustomPresetForm = false;
 
   onMount(async () => {
     await settings.init();
@@ -153,6 +164,11 @@
   // Add to toolbar
   function openSettings() {
     showSettings = true;
+  }
+
+  function getPresetForPlatform(platform: string) {
+    // Implementation here
+    return null; // temporary
   }
 </script>
 <div
