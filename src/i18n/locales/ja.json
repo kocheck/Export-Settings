@@ -1,0 +1,36 @@
+{
+  "common": {
+    "apply": "適用",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "settings": "設定",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功"
+  },
+  "platforms": {
+    "ios": "iOS",
+    "android": "Android",
+    "web": "Web",
+    "custom": "カスタム"
+  },
+  "export": {
+    "title": "書き出し設定",
+    "platform": "プラットフォーム",
+    "format": "フォーマット",
+    "suffix": "サフィックス",
+    "scale": "倍率",
+    "width": "幅",
+    "height": "高さ",
+    "preview": "プレビュー",
+    "applySettings": "書き出し設定を適用",
+    "createPreset": "カスタムプリセットを作成",
+    "editPreset": "プリセットを編集",
+    "deletePreset": "プリセットを削除",
+    "noSelection": "レイヤーを選択してください",
+    "processingExport": "書き出し設定を処理中..."
+  }
+}

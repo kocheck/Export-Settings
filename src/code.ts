@@ -1,348 +1,206 @@
-const { command } = figma;
-const menuTrigger = command;
-console.log("Firing " + menuTrigger + " from menu");
-//Everywhere in the ap launchUrl is 'foo'
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (see documentation).
+import {
+  IOS_PRESET,
+  IOS_ADVANCED_PRESET,
+  ANDROID_PRESET,
+  ANDROID_ADVANCED_PRESET,
+  WEB_PRESET,
+  WEB_ADVANCED_PRESET,
+} from './constants/presets';
+import type { ExportPreset, PluginMessage } from './types';
+import { isValidSelection, validatePreset } from './utils/validation';
+import { notify } from './utils/notifications';
+import { storage } from './utils/storage';
+import { generateNodePreview } from './utils/preview';
 
-if (menuTrigger !== "openPlugin") {
-  let menuSettings = [];
-  // IOS Settings ======
-  const menuSettingsIOS = [
-    {
-      format: "PNG",
-      suffix: " @3x",
-      constraint: { type: "SCALE", value: 3 },
-    },
-    {
-      format: "PNG",
-      suffix: " @2x",
-      constraint: { type: "SCALE", value: 2 },
-    },
-    {
-      format: "PNG",
-      suffix: " @1x",
-      constraint: { type: "SCALE", value: 1 },
-    },
-  ];
-  // Android Settings ======
-  const MenuSettingsAndroid = [
-    {
-      format: "PNG",
-      suffix: " drawable-xxxhdpi",
-      constraint: { type: "SCALE", value: 4 },
-    },
-    {
-      format: "PNG",
-      suffix: " drawable-xxhdpi",
-      constraint: { type: "SCALE", value: 3 },
-    },
-    {
-      format: "PNG",
-      suffix: " drawable-xhdpi",
-      constraint: { type: "SCALE", value: 2 },
-    },
-    {
-      format: "PNG",
-      suffix: " drawable-hdpi",
-      constraint: { type: "SCALE", value: 1.5 },
-    },
-    {
-      format: "PNG",
-      suffix: " drawable-ldpi",
-      constraint: { type: "SCALE", value: 0.75 },
-    },
-    {
-      format: "PNG",
-      suffix: " drawable-mdpi",
-      constraint: { type: "SCALE", value: 1 },
-    },
-  ];
-  // Web Settings ======
-  const MenuSettingsWeb = [
-    {
-      format: "SVG",
-      suffix: "",
-      svgOutlineText: true,
-      svgIdAttribute: false,
-      svgSimplifyStroke: true,
-    },
-    { format: "PNG", suffix: " @3x", constraint: { type: "SCALE", value: 3 } },
-    { format: "PNG", suffix: " @2x", constraint: { type: "SCALE", value: 2 } },
-    { format: "PNG", suffix: " @1x", constraint: { type: "SCALE", value: 1 } },
-  ];
-  const { selection } = figma.currentPage;
-  function hasValidSelectionMenu(nodes) {
-    return nodes || nodes.length === 0;
+figma.showUI(__html__, { width: 400, height: 600 });
+
+// Detect user's language from Figma
+const userLanguage = figma.root.getPluginData('preferredLanguage') ||
+                    figma.currentPage.parent?.getPluginData('preferredLanguage') ||
+                    figma.ui.language ||
+                    'en';
+
+// Send initial data to UI
+figma.ui.postMessage({
+  type: 'init',
+  data: {
+    language: userLanguage,
+    selection: figma.currentPage.selection
   }
-  let closingType = "";
-  if (menuTrigger === "applyIOS") {
-    menuSettings = menuSettingsIOS;
-    console.log(`2 Fire Menu IOS Settings`);
-    closingType = "IOS";
+});
+
+// Handle plugin commands from the menu
+figma.on('run', async ({ command }) => {
+  try {
+    switch (command) {
+      case 'quick-export-ios':
+        await applyPreset(IOS_PRESET);
+        break;
+      case 'quick-export-android':
+        await applyPreset(ANDROID_PRESET);
+        break;
+      case 'quick-export-web':
+        await applyPreset(WEB_PRESET);
+        break;
+      case 'clear-settings':
+        await clearExportSettings();
+        break;
+    }
+  } catch (error) {
+    notify.error(`Command failed: ${error.message}`);
+    console.error('Command error:', error);
   }
-  // Sets Android Export
-  if (menuTrigger === "applyAndroid") {
-    menuSettings = MenuSettingsAndroid;
-    console.log(`2 Fire Menu Android Settings`);
-    closingType = "Android";
-  }
-  // Sets Web Export
-  if (menuTrigger === "applyWeb") {
-    menuSettings = MenuSettingsWeb;
-    console.log(`2 Fire Menu Web Settings`);
-    closingType = "Web";
-  }
-  if (menuTrigger === "clearExport") {
-    menuSettings = [];
-    console.log(`2 Clear Settings`);
-    closingType = "Cleared";
-  }
+});
 
-  // Applies Settings to Figma Element =================
-  async function main(nodes): Promise<string> {
-    if (!hasValidSelectionMenu(nodes))
-      return Promise.resolve("No valid selection");
+// Handle messages from the UI
+figma.ui.onmessage = async (msg: PluginMessage) => {
+  try {
+    switch (msg.type) {
+      case 'applySettings': {
+        if (!msg.preset) {
+          throw new Error('No preset selected');
+        }
 
-    for (let node of nodes) {
-      node.exportSettings = menuSettings;
-    }
+        const { selection } = figma.currentPage;
+        if (!selection.length) {
+          throw new Error('Please select at least one layer');
+        }
 
-    return Promise.resolve("Done!");
-  }
-
-  main(selection);
-  let closingMsg = "Settings Applied";
-  if (menuTrigger === "clearExport") {
-    closingMsg = " Export Settings";
-  }
-
-  figma.closePlugin(closingType + " " + closingMsg);
-}
-
-// This shows the HTML page in "ui.html".
-figma.showUI(__html__, { width: 200, height: 396 });
-
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
-figma.ui.onmessage = (msg) => {
-  // One way of distinguishing between different types of messages sent from
-  // your HTML page is to use an object with a "type" property like this.
-  if (msg.type === "applySettings") {
-    const { selection } = figma.currentPage;
-
-    function hasValidSelection(nodes) {
-      return nodes || nodes.length === 0;
-    }
-    let settings = [];
-    // Importing the User entered string and biding a default value to null
-    let UserEnteredString = msg.name;
-    if (UserEnteredString === null) {
-      UserEnteredString = "default-asset";
-    }
-    // console.log(msg);
-
-    // IOS Settings ======
-    const settingsIOS = [
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@3x",
-        constraint: { type: "SCALE", value: 3 },
-      },
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@2x",
-        constraint: { type: "SCALE", value: 2 },
-      },
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@1x",
-        constraint: { type: "SCALE", value: 1 },
-      },
-    ];
-    const settingsIOSadv = [
-      {
-        format: "PNG",
-        suffix:
-          "/" + UserEnteredString + ".imageset/" + UserEnteredString + "@3x",
-        constraint: { type: "SCALE", value: 3 },
-      },
-      {
-        format: "PNG",
-        suffix:
-          "/" + UserEnteredString + ".imageset/" + UserEnteredString + "@2x",
-        constraint: { type: "SCALE", value: 2 },
-      },
-      {
-        format: "PNG",
-        suffix:
-          "/" + UserEnteredString + ".imageset/" + UserEnteredString + "@1x",
-        constraint: { type: "SCALE", value: 1 },
-      },
-    ];
-    // Android Settings ======
-    const settingsAndroidAdv = [
-      {
-        format: "PNG",
-        suffix: "/drawable-xxxhdpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 4 },
-      },
-      {
-        format: "PNG",
-        suffix: "/drawable-xxhdpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 3 },
-      },
-      {
-        format: "PNG",
-        suffix: "/drawable-xhdpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 2 },
-      },
-      {
-        format: "PNG",
-        suffix: "/drawable-hdpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 1.5 },
-      },
-      {
-        format: "PNG",
-        suffix: "/drawable-ldpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 0.75 },
-      },
-      {
-        format: "PNG",
-        suffix: "/drawable-mdpi/" + UserEnteredString,
-        constraint: { type: "SCALE", value: 1 },
-      },
-    ];
-    const settingsAndroid = [
-      {
-        format: "PNG",
-        suffix: "drawable-xxxhdpi" + UserEnteredString,
-        constraint: { type: "SCALE", value: 4 },
-      },
-      {
-        format: "PNG",
-        suffix: "drawable-xxhdpi",
-        constraint: { type: "SCALE", value: 3 },
-      },
-      {
-        format: "PNG",
-        suffix: "drawable-xhdpi",
-        constraint: { type: "SCALE", value: 2 },
-      },
-      {
-        format: "PNG",
-        suffix: "drawable-hdpi",
-        constraint: { type: "SCALE", value: 1.5 },
-      },
-      {
-        format: "PNG",
-        suffix: "drawable-ldpi",
-        constraint: { type: "SCALE", value: 0.75 },
-      },
-      {
-        format: "PNG",
-        suffix: "drawable-mdpi",
-        constraint: { type: "SCALE", value: 1 },
-      },
-    ];
-    // Web Settings ======
-    const settingsWeb = [
-      {
-        format: "SVG",
-        suffix: "",
-        svgOutlineText: true,
-        svgIdAttribute: false,
-        svgSimplifyStroke: true,
-      },
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@3x",
-        constraint: { type: "SCALE", value: 3 },
-      },
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@2x",
-        constraint: { type: "SCALE", value: 2 },
-      },
-      {
-        format: "PNG",
-        suffix: "/" + UserEnteredString + "@1x",
-        constraint: { type: "SCALE", value: 1 },
-      },
-    ];
-
-    // if statments to apply export settings ===========
-    // Sets IOS Export
-    if (msg.platform === "IOS" && msg.isAdvanced === false) {
-      settings = settingsIOS;
-      console.log(`2 Fire IOS Settings`);
-    }
-    if (msg.platform === "IOS" && msg.isAdvanced === true) {
-      settings = settingsIOSadv;
-      console.log(`2 Fire IOS Adv Settings`);
-    }
-    // Sets Android Export
-    if (msg.platform === "Android" && msg.isAdvanced === false) {
-      settings = settingsAndroid;
-      console.log(`2 Fire Android Settings`);
-    }
-    if (msg.platform === "Android" && msg.isAdvanced === true) {
-      settings = settingsAndroidAdv;
-      console.log(`2 Fire Android Adv Settings`);
-    }
-    // Sets Web Export
-    if (msg.platform === "Web") {
-      settings = settingsWeb;
-      console.log(`2 Fire Web Settings`);
-    }
-
-    // Applies Settings to Figma Element =================
-    async function main(nodes): Promise<string> {
-      if (!hasValidSelection(nodes))
-        return Promise.resolve("No valid selection");
-
-      for (let node of nodes) {
-        node.exportSettings = settings;
+        await applyPreset(msg.preset);
+        figma.ui.postMessage({
+          type: 'success',
+          message: 'Export settings applied successfully',
+        });
+        break;
       }
-
-      return Promise.resolve("Done!");
-    }
-
-    main(selection);
-  } // Clear Logic
-  else if (msg.type === "clearSettings") {
-    // Applies Settings to Figma Element =================
-    // TODO componitize this with the function above. ++++++++
-    const { selection } = figma.currentPage;
-
-    function hasValidSelectionClear(nodes) {
-      return nodes || nodes.length === 0;
-    }
-
-    const settings = [];
-
-    async function mainClear(nodes): Promise<string> {
-      if (!hasValidSelectionClear(nodes))
-        return Promise.resolve("No valid selection");
-
-      for (let node of nodes) {
-        node.exportSettings = settings;
+      case 'clearSettings':
+        await clearExportSettings();
+        break;
+      case 'cancel':
+        figma.closePlugin();
+        break;
+      case 'getCustomPresets': {
+        const presets = await storage.getCustomPresets();
+        figma.ui.postMessage({ type: 'customPresets', presets });
+        break;
       }
+      case 'saveCustomPreset': {
+        await storage.saveCustomPreset(msg.preset);
+        const presets = await storage.getCustomPresets();
+        figma.ui.postMessage({ type: 'customPresets', presets });
+        notify.success('Custom preset saved');
+        break;
+      }
+      case 'deleteCustomPreset': {
+        await storage.deleteCustomPreset(msg.presetId);
+        const presets = await storage.getCustomPresets();
+        figma.ui.postMessage({ type: 'customPresets', presets });
+        notify.success('Custom preset deleted');
+        break;
+      }
+      case 'generatePreviews': {
+        const nodes = msg.nodeIds
+          .map((id) => figma.getNodeById(id))
+          .filter(Boolean);
 
-      return Promise.resolve("Done!");
+        for (const node of nodes) {
+          if (node && 'exportAsync' in node) {
+            const preview = await generateNodePreview(node, {
+              maxWidth: 200,
+              maxHeight: 200,
+            });
+
+            if (preview) {
+              figma.ui.postMessage({
+                type: 'previewGenerated',
+                nodeId: node.id,
+                preview: `data:image/png;base64,${figma.base64Encode(
+                  preview
+                )}`,
+              });
+            }
+          }
+        }
+        break;
+      }
     }
-    console.log(`2 Fire Clear Settings`);
-    mainClear(selection);
-  } // Cancel == Close Plugin
-  else if (msg.type === "cancel") {
-    figma.closePlugin();
-  }
-
-  if (msg.platform === undefined) {
-    figma.notify("Cleared Export Settings");
-  } else {
-    figma.notify(msg.platform + " Export Settings Applied");
+  } catch (error) {
+    figma.ui.postMessage({
+      type: 'error',
+      message: error.message,
+    });
+    console.error('Operation error:', error);
   }
 };
+
+async function applyPreset(preset: ExportPreset): Promise<void> {
+  const { selection } = figma.currentPage;
+
+  if (!isValidSelection(selection)) {
+    throw new Error('Please select at least one layer');
+  }
+
+  const validationErrors = validatePreset(preset);
+  if (validationErrors.length > 0) {
+    throw new Error(`Invalid preset: ${validationErrors.join(', ')}`);
+  }
+
+  try {
+    for (const node of selection) {
+      node.exportSettings = preset.settings;
+    }
+    notify.success(`Applied ${preset.name} export settings`);
+  } catch (error) {
+    throw new Error(
+      `Failed to apply export settings: ${error.message}`
+    );
+  }
+}
+
+async function clearExportSettings(): Promise<void> {
+  const { selection } = figma.currentPage;
+
+  if (!isValidSelection(selection)) {
+    throw new Error('Please select at least one layer');
+  }
+
+  try {
+    for (const node of selection) {
+      node.exportSettings = [];
+    }
+    notify.success('Cleared export settings');
+  } catch (error) {
+    throw new Error(
+      `Failed to clear export settings: ${error.message}`
+    );
+  }
+}
+
+function getPresetForPlatform(
+  platform: string,
+  isAdvanced: boolean
+): ExportPreset | null {
+  switch (platform) {
+    case 'iOS':
+      return isAdvanced ? IOS_ADVANCED_PRESET : IOS_PRESET;
+    case 'Android':
+      return isAdvanced ? ANDROID_ADVANCED_PRESET : ANDROID_PRESET;
+    case 'Web':
+      return isAdvanced ? WEB_ADVANCED_PRESET : WEB_PRESET;
+    default:
+      return null;
+  }
+}
+
+function validateSelection(selection: readonly SceneNode[]): void {
+  if (!selection.length) {
+    throw new Error('Please select at least one layer');
+  }
+
+  const invalidNodes = selection.filter(
+    (node) => !node.exportSettings
+  );
+  if (invalidNodes.length > 0) {
+    throw new Error('Some selected layers cannot be exported');
+  }
+}

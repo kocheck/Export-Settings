@@ -1,0 +1,53 @@
+{
+  "common": {
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "settings": "Settings",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "platforms": {
+    "ios": "iOS",
+    "android": "Android",
+    "web": "Web",
+    "custom": "Custom"
+  },
+  "export": {
+    "title": "Export Settings",
+    "platform": "Platform",
+    "format": "Format",
+    "suffix": "Suffix",
+    "scale": "Scale",
+    "width": "Width",
+    "height": "Height",
+    "preview": "Preview",
+    "applySettings": "Apply Export Settings",
+    "createPreset": "Create Custom Preset",
+    "editPreset": "Edit Preset",
+    "deletePreset": "Delete Preset",
+    "noSelection": "Please select at least one layer",
+    "processingExport": "Processing export settings..."
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "autoClose": "Auto-close after apply",
+    "showPreviews": "Show previews",
+    "defaultPlatform": "Default platform",
+    "advanced": "Advanced options",
+    "reset": "Reset settings"
+  },
+  "messages": {
+    "settingsApplied": "Export settings applied successfully",
+    "presetSaved": "Preset saved successfully",
+    "presetDeleted": "Preset deleted successfully",
+    "settingsReset": "Settings reset to defaults",
+    "invalidSelection": "Invalid selection. Please select valid layers.",
+    "exportError": "Error applying export settings: {{error}}"
+  }
+}

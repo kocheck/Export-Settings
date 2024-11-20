@@ -1,0 +1,65 @@
+/* RTL Support */
+[dir="rtl"] .plugin-content {
+  text-align: right;
+}
+
+[dir="rtl"] .icon-button {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .preview-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-panel {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .toast {
+  left: auto;
+  right: 16px;
+}
+
+[dir="rtl"] .dropdown-menu {
+  text-align: right;
+}
+
+[dir="rtl"] .checkbox-label {
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+[dir="rtl"] .checkbox-label::before {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .settings-item {
+  flex-direction: row-reverse;
+}
+
+/* RTL specific margins and paddings */
+[dir="rtl"] .preview-info {
+  margin-left: 0;
+  margin-right: 12px;
+}
+
+[dir="rtl"] .icon-button + .icon-button {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+/* RTL animations */
+@keyframes slide-in-rtl {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] .slide-in {
+  animation: slide-in-rtl 0.3s ease-out;
+}

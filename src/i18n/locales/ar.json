@@ -1,0 +1,36 @@
+{
+  "common": {
+    "apply": "تطبيق",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "close": "إغلاق",
+    "settings": "الإعدادات",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح"
+  },
+  "platforms": {
+    "ios": "آي أو إس",
+    "android": "أندرويد",
+    "web": "ويب",
+    "custom": "مخصص"
+  },
+  "export": {
+    "title": "إعدادات التصدير",
+    "platform": "المنصة",
+    "format": "الصيغة",
+    "suffix": "لاحقة",
+    "scale": "المقياس",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "preview": "معاينة",
+    "applySettings": "تطبيق إعدادات التصدير",
+    "createPreset": "إنشاء إعداد مسبق مخصص",
+    "editPreset": "تعديل الإعداد المسبق",
+    "deletePreset": "حذف الإعداد المسبق",
+    "noSelection": "الرجاء تحديد طبقة واحدة على الأقل",
+    "processingExport": "جاري معالجة إعدادات التصدير..."
+  }
+}

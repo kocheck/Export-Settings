@@ -1,0 +1,19 @@
+{
+  "entryPoints": ["src/"],
+  "entryPointStrategy": "expand",
+  "out": "docs/api",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "markdown",
+  "readme": "none",
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Core",
+    "Components",
+    "Utilities",
+    "Types",
+    "*"
+  ]
+}
